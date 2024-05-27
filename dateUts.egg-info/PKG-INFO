@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dateUts
-Version: 0.2.8
+Version: 0.2.9
 Summary: Date package
 Home-page: 
 Author: Melque Lima
@@ -23,6 +23,9 @@ Requires-Dist: python-dateutil==2.8.2
 ```sh
 pip install dateUts
 ```
+
+## GitHub
+https://github.com/ZdekPyPi/DateUts
 
 ### Usage
 #
