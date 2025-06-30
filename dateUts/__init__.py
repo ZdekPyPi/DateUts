@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 
 class DateUts():
     date = None
+    str_format = 'sql'
 
     def __init__(self,date):
         self.date = date
@@ -15,6 +16,20 @@ class DateUts():
 
     def __repr__(self):
         return f"<DateUts {self.date.strftime('%Y-%m-%d %H:%M:%S')}>"
+
+    def format(self,fmt):
+        fmt= fmt if not fmt else getFmt(fmt)
+
+        return DateUts(self.date.date) if not fmt else self.date.strftime(fmt) 
+
+    def toSql(self):
+        return self.fmt('sql')
+    
+    def add(self,qtd:int,unit:str="day",fmt=None):
+        return dateAdd(self.date,qtd,unit,fmt)
+    
+    def __str__(self):
+        return self.fmt(self.str_format) 
 
 
 # output: True (2023-04-22 is a Saturday)
@@ -126,21 +141,37 @@ def dateAdd(date:date,qtd:int,unit:str="day",fmt=None):
 # > lastWorkingDate(ref=<date:'2022-03-24'>)  ,  lastWorkingDate(ref=<date:'2022-03-24'>,fmt='%Y-%m-%d')   ,   lastWorkingDate(ref=<date:'2022-03-24'>,fmt='sql')
 # > <datetime>, '2022-05-23',  '2022-05-23'
 
-def lastWorkingDate(ref:date=None,fmt=None): #IGNORE SATURDAY AND SUNDAY
-    y = yesterday() if not ref else dateAdd(ref,-1,'day')
-    if y.weekday() in [5,6]:
-        return lastWorkingDate(y,fmt)
-    return fmtDate(y,fmt)
+def lastWorkingDate(ref:date=None,fmt=None,allow_saturday=False,allow_sunday=False,num_days=1,holidays=[]): #IGNORE SATURDAY AND SUNDAY
+    num_days     = abs(num_days)
+    current_date = today() if not ref else ref
+    to_ignore    = [y for x,y in zip([allow_saturday,allow_sunday],[5,6]) if not x]
+    
+    while num_days:
+        current_date = dateAdd(current_date,-1,'day')
+
+        if current_date.weekday() in to_ignore: continue
+        if current_date.format('sql') in holidays: continue
+
+        num_days -= 1
+
+    return fmtDate(current_date,fmt)
 
 
+#holidays ['yyyy-mm-dd']
+def nextWorkingDate(ref:date=None,fmt=None,allow_saturday=False,allow_sunday=False,num_days=1,holidays=[]): #IGNORE SATURDAY AND SUNDAY
+    num_days     = abs(num_days)
+    current_date = today() if not ref else ref
+    to_ignore    = [y for x,y in zip([allow_saturday,allow_sunday],[5,6]) if not x]
+    
+    while num_days:
+        current_date = dateAdd(current_date,1,'day')
 
-def nextWorkingDate(ref:date=None,fmt=None,allow_saturday=False,allow_sunday=False): #IGNORE SATURDAY AND SUNDAY
-    t = tomorrow() if not ref else dateAdd(ref,1,'day')
-    to_ignore = [y for x,y in zip([allow_saturday,allow_sunday],[5,6]) if not x]
+        if current_date.weekday() in to_ignore: continue
+        if current_date.format('sql') in holidays: continue
 
-    if t.weekday() in to_ignore:
-        return nextWorkingDate(t,fmt,allow_saturday,allow_sunday)
-    return fmtDate(t,fmt)
+        num_days -= 1
+
+    return fmtDate(current_date,fmt)
 
 
 #========= USAGE ============
